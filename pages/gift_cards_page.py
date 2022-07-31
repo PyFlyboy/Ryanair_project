@@ -18,7 +18,6 @@ class GiftCardsPage(BasePage):
 
     def check_available_gift_cards(self):
         self.get_title()
-
         self.wait_for_element(self.locator['cookies_pop_up_window'])
         self.element_click(self.locator['cookies_accept'], locator_type="xpath")
         self.wait_for_element(self.locator['gift_cards'], locator_type="xpath")
@@ -36,8 +35,17 @@ class GiftCardsPage(BasePage):
             self.element_click(locator=voucher_location, locator_type="xpath")
             driver.implicitly_wait(2)
             self.screen_shot("Voucher")
-        test = self.get_voucher_currency()
-        self.get_currency_value(test)
+            # check currency for voucher
+            currency_val = self.get_currency_values()
+            currency_amount = self.get_currency_ammount(currency_val)
+            for key in currency_amount.keys():
+                self.element_click(locator=key, locator_type="xpath")
+                for val in currency_amount[key]:
+                    self.element_click(locator=val, locator_type="xpath")
+
+
+
+
 
 
         # self.wait_for_element(self.locator['currency_option'], locator_type="xpath")
@@ -66,7 +74,7 @@ class GiftCardsPage(BasePage):
             driver.implicitly_wait(2)
             self.screen_shot("Voucher")
 
-    def get_voucher_currency(self):
+    def get_currency_values(self):
         driver.execute_script("window.scrollTo(0,400);")
         self.wait_for_element(self.locator['currency_option'], locator_type="xpath")
         currency = self.get_element_list(self.locator['currency_option'], locator_type="xpath")
@@ -80,31 +88,23 @@ class GiftCardsPage(BasePage):
         currency_val = dict(zip(currency_value_list,currency_xpath_list))
         return currency_val
 
-    def get_currency_value(self, currency_types=dict):
+    def get_currency_ammount(self, currency_types=dict):
             print(currency_types)
             if currency_types:
                 currency_values = {}
-
                 for key in list(currency_types.keys()):
                     print(key, file=sys.stderr)
                     self.element_click(locator=currency_types[key], locator_type="xpath")
-                    currency_amount = self.get_element_list(self.locator['currency_amount_option'],
-                                                                locator_type="xpath")
+                    currency_amount = self.get_element_list(self.locator['currency_amount_option'], locator_type="xpath")
                     curr_ammount = []
                     for element in currency_amount:
                         element_xpath = "//select[starts-with(@id,'amountSelector')]/option[@value='{}']".format(
                         element.get_attribute("value"))
                         print(element_xpath)
                         curr_ammount.append(element_xpath)
-
-                    currency_values[key] = curr_ammount
-
+                    currency_values[currency_types[key]] = curr_ammount
             return currency_values
 
-        # self.element_click(self.locator['currency_selector'], locator_type="xpath")
-        # self.element_click(locator=new_list[5], locator_type="xpath")
-        # print(new_list, file=sys.stderr)
-        # currency_value = self.get_element_list(self.locator['currency_amount_option'], locator_type="xpath")
 
 bc = BrowserConfiguration("chrome")
 driver = bc.web_driver_instance()
